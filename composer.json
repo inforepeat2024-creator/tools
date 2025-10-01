@@ -1,0 +1,44 @@
+{
+  "name": "petar/repeat-toolkit",
+  "description": "Repeat Toolkit for Laravel: AbstractModel, controllers, macros, helpers and utilities.",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Petar Ristovic",
+      "email": "you@example.com"
+    }
+  ],
+  "require": {
+    "php": "^8.2",
+    "illuminate/database": "^10.0|^11.0",
+    "illuminate/support": "^10.0|^11.0",
+    "illuminate/translation": "^10.0|^11.0",
+    "illuminate/auth": "^10.0|^11.0",
+    "illuminate/http": "^10.0|^11.0",
+    "illuminate/routing": "^10.0|^11.0",
+    "gettext/gettext": "^5.7"
+  },
+  "autoload": {
+    "psr-4": {
+      "RepeatToolkit\\": "src/"
+    },
+    "files": [
+      "src/Support/helpers.php"
+    ]
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "RepeatToolkit\\Tests\\": "tests/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "RepeatToolkit\\Providers\\RouteMacroServiceProvider"
+      ]
+    }
+  },
+  "minimum-stability": "stable",
+  "prefer-stable": true
+}
