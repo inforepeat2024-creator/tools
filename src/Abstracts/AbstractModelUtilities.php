@@ -1305,7 +1305,7 @@ abstract class AbstractModelUtilities
 
     public function afterModelCreate($model)
     {
-        $this->dealWithDefaultRow($model);
+
     }
 
     public function updateFromParams(array $search_params, array $update_params)
