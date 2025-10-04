@@ -6,6 +6,11 @@ Laravel / Vite toolkit sa abstraktnim modelima, kontrolerima, helperima i auto-u
 
 ## Instalacija paketa
 
+u composer projekta
+
+"minimum-stability": "dev",
+"prefer-stable": true
+
 u composer json dodati: 
 `  "repositories": [
         { "type": "vcs", "url": "https://github.com/inforepeat2024-creator/tools.git" }
@@ -13,7 +18,7 @@ u composer json dodati:
 `
 
 ```bash
- composer require petar/repeat-toolkit:*@dev
+ λ composer require petar/repeat-toolkit:dev-main --prefer-source
 ```
 
 > ⚠️ Koristi `@dev` dok paket nije tagovan.
@@ -22,7 +27,7 @@ u composer json dodati:
 
 ## Laravel publish komande
 
-### 1. Publish Vite plugin stub
+### 1. Publish 
 php artisan vendor:publish --provider="RepeatToolkit\Providers\ToolkitServiceProvider" --force
 ## Vite konfiguracija
 
@@ -48,46 +53,39 @@ export default defineConfig(withRepeatToolkit({
 }))
 ```
 
-> ✅ Nije potrebno ručno menjati `app.js`. Svi fajlovi iz `resources/js/components` će se automatski importovati.
+ovo je u app.js
 
----
+```js
+import __i, { loadTranslations, setLocale, _i } from './vendor/repeat-toolkit/i18n.js'
+
+
+
+// primer inicijalizacije
+const locale = window.APP_LOCALE ?? 'sr'
+await loadTranslations(locale, `/medicinski_turizam/public/i18n/${locale}.json`, { replace: true })
+
+```
+
 
 ## I18n prevodi
 
-1. Generisanje `.po` fajlova:
+1. Generisanje prevoda fajlova:
 
 ```bash
-php artisan make:po-from-i
+php artisan i18n:make
 ```
 
-2. Generisanje JSON prevoda za frontend:
+
+
+
+4. Routes js:
 
 ```bash
-php artisan make:json-from-i
+php artisan repeat:routes:export resources/js/routes.gen.json --pretty --absolute
 ```
 
-3. Publikacija prevoda:
 
-```bash
-mkdir -p public/i18n
-php artisan make:json-from-i
-```
-
-> JSON fajlovi završavaju u `public/i18n/{locale}.json`.
 
 ---
 
-## Posle svakog update-a paketa
-
-- Odradi ponovo publish (ako su se stubovi promenili):  
-  ```bash
-  php artisan vendor:publish --provider="RepeatToolkit\Providers\ToolkitServiceProvider" --force
-  ```
-
-- Očisti cache:  
-  ```bash
-  php artisan optimize:clear
-  ```
-
----
 

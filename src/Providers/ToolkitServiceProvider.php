@@ -42,6 +42,7 @@ class ToolkitServiceProvider extends ServiceProvider
             $packageBase . '/src/resources/views/crud/view.blade.php'        => resource_path('views/crud/view.blade.php'),
             $packageBase . '/src/resources/views/crud/create_partial.blade.php' => resource_path('views/crud/create_partial.blade.php'),
             $packageBase . '/src/resources/views/layouts/app_layout.blade.php'  => resource_path('views/layouts/app_layout.blade.php'),
+            $packageBase . '/src/resources/views/email_sender/layouts/base_layout.blade.php'  => resource_path('views/email_sender/layouts/base_layout.blade.php'),
 
             // JS helpers / vendor fajlovi
             $packageBase . '/resources/js/i18n.js'        => resource_path('js/vendor/repeat-toolkit/i18n.js'),
@@ -108,6 +109,8 @@ class ToolkitServiceProvider extends ServiceProvider
             $packageBase . '/src/resources/views/crud/view.blade.php'           => resource_path('views/crud/view.blade.php'),
             $packageBase . '/src/resources/views/crud/create_partial.blade.php' => resource_path('views/crud/create_partial.blade.php'),
             $packageBase . '/src/resources/views/layouts/app_layout.blade.php'  => resource_path('views/layouts/app_layout.blade.php'),
+            $packageBase . '/src/resources/views/email_sender/layouts/base_layout.blade.php'  => resource_path('views/email_sender/layouts/base_layout.blade.php'),
+
         ], 'repeat-views');
 
         // JS directories
