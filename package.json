@@ -1,0 +1,7 @@
+{
+  "name": "repeat-toolkit",
+  "version": "1.0.0",
+  "peerDependencies": {
+    "ziggy-js": "^2.0"
+  }
+}

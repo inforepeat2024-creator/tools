@@ -8,13 +8,13 @@ trait ModelActionsTrait
     {
         $actions = [];
 
-      /*  if (method_exists($this, 'canEdit') ? $this->canEdit() : true) {
+        if (method_exists($this, 'canEdit') ? $this->canEdit() : true) {
             $actions[] = [
                 'label' => 'Edit',
                 'type' => 'edit',
-                'url' => route($this->getRoutePrefix() . '.edit', $this->id),
+                'url' => route($this->getRoutePrefix() . '.create_partial', ['basic', $this->id]),
             ];
-        }*/
+        }
 
         if (method_exists($this, 'canDelete') ? $this->canDelete() : true) {
             $actions[] = [

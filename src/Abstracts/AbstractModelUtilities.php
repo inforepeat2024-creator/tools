@@ -74,15 +74,7 @@ abstract class AbstractModelUtilities
 
     public function getViewColumns()
     {
-        $columns = [
-
-            ['label' => 'Motor', 'key' => 'name'],
-            ['label' => 'Dodatno', 'key' => 'add'],
-            ['label' => 'Akcije', 'key' => 'actions'],
-
-        ];
-
-        return $columns;
+        return [];
     }
 
     public function getAdditionalPartials()

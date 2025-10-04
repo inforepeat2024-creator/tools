@@ -4,6 +4,13 @@
 use RepeatToolkit\Support\PoLoader;
 use Illuminate\Support\Facades\Lang;
 
+if (! function_exists('repeat_layout')) {
+    function repeat_layout(): string
+    {
+        return config('repeat-toolkit.layout', 'layouts.app_layout');
+    }
+}
+
 if (!function_exists('__i')) {
     function __i(string $key, array $replace = [], ?string $locale = null): string
     {
