@@ -8,26 +8,26 @@ use Illuminate\Support\Facades\Mail;
 
 final class LaravelEmailSender implements EmailSenderInterface
 {
-    public function __construct(
-        private readonly ?string $defaultFromEmail = null,
-        private readonly ?string $defaultFromName = null,
-    ) {}
-
     public function send(AbstractEmailMessage $message): void
     {
         $message->validate();
 
-        Mail::send([], [], function (\Illuminate\Mail\Message $m) use ($message) {
+        // Izvlači default "from" iz config/mail.php
+        $defaultFrom = config('mail.from');
+        $defaultEmail = Arr::get($defaultFrom, 'address');
+        $defaultName  = Arr::get($defaultFrom, 'name');
 
-            // From
+        Mail::send([], [], function (\Illuminate\Mail\Message $m) use ($message, $defaultEmail, $defaultName) {
+
+            // From — koristi prioritetno iz poruke, pa fallback na config
             $from = $message->getFrom();
             if ($from) {
                 $m->from($from->email, $from->name);
-            } elseif ($this->defaultFromEmail) {
-                $m->from($this->defaultFromEmail, $this->defaultFromName);
+            } elseif ($defaultEmail) {
+                $m->from($defaultEmail, $defaultName);
             }
 
-            // To / Cc / Bcc
+            // To / CC / BCC
             foreach ($message->getTo() as $addr)  { $m->to($addr->email,  $addr->name); }
             foreach ($message->getCc() as $addr)  { $m->cc($addr->email,  $addr->name); }
             foreach ($message->getBcc() as $addr) { $m->bcc($addr->email, $addr->name); }
@@ -40,17 +40,12 @@ final class LaravelEmailSender implements EmailSenderInterface
             // Subject
             $m->subject($message->getSubject());
 
-            // Body (HTML + optional text part)
+            // Body (HTML + text fallback)
             if ($html = $message->getHtml()) {
                 $m->setBody($html, 'text/html');
             }
             if ($text = $message->getText()) {
                 $m->addPart($text, 'text/plain');
-            }
-
-            // Custom headers (ako ih driver podržava)
-            foreach ($message->getHeaders() as $name => $value) {
-                $m->getSwiftMessage()?->getHeaders()->addTextHeader($name, $value);
             }
 
             // Attachments
