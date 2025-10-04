@@ -6,8 +6,14 @@ Laravel / Vite toolkit sa abstraktnim modelima, kontrolerima, helperima i auto-u
 
 ## Instalacija paketa
 
+u composer json dodati: 
+`  "repositories": [
+        { "type": "vcs", "url": "https://github.com/inforepeat2024-creator/tools.git" }
+    ],
+`
+
 ```bash
-composer require inforepeat/repeat-toolkit:@dev
+ composer require petar/repeat-toolkit:*@dev
 ```
 
 > ⚠️ Koristi `@dev` dok paket nije tagovan.
@@ -17,26 +23,7 @@ composer require inforepeat/repeat-toolkit:@dev
 ## Laravel publish komande
 
 ### 1. Publish Vite plugin stub
-Ovo doda `resources/stubs/vite/repeat-vite-plugin.js` u projekat:
-
-```bash
-php artisan vendor:publish --provider="RepeatToolkit\Providers\ToolkitServiceProvider" --tag=repeat-vite-merge
-```
-
-### 2. Publish JS helperi (i18n)
-Ovo doda `resources/js/i18n.js` (loader za prevode):
-
-```bash
-php artisan vendor:publish --provider="RepeatToolkit\Providers\ToolkitServiceProvider" --tag=repeat-i18n-js
-```
-
-### 3. Publish ostali stubovi (ako ih bude)
-```bash
-php artisan vendor:publish --provider="RepeatToolkit\Providers\ToolkitServiceProvider" --tag=repeat-stubs
-```
-
----
-
+php artisan vendor:publish --provider="RepeatToolkit\Providers\ToolkitServiceProvider" --force
 ## Vite konfiguracija
 
 U `vite.config.js` obmotaj postojeći config kroz `withRepeatToolkit`:
@@ -104,23 +91,3 @@ php artisan make:json-from-i
 
 ---
 
-## Kratak rezime komandi
-
-```bash
-# Instalacija
-composer require inforepeat/repeat-toolkit:@dev
-
-# Publish vite plugina
-php artisan vendor:publish --provider="RepeatToolkit\Providers\ToolkitServiceProvider" --tag=repeat-vite-merge
-
-# Publish i18n helpera
-php artisan vendor:publish --provider="RepeatToolkit\Providers\ToolkitServiceProvider" --tag=repeat-i18n-js
-
-# Generisanje po i json prevoda
-php artisan make:po-from-i
-php artisan make:json-from-i
-```
-
----
-
-Sada u `resources/js/components` možeš slobodno da dodaješ nove komponente (npr. `test_component.js`), i one će automatski biti učitane u bundl bez ikakvih dodatnih izmjena u `app.js`.

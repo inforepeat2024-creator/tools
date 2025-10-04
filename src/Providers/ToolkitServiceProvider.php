@@ -2,76 +2,121 @@
 
 namespace RepeatToolkit\Providers;
 
-
 use Illuminate\Support\ServiceProvider;
 use RepeatToolkit\Console\Commands\MakePoFromI;
-use Illuminate\Support\Facades\Log;
+
 class ToolkitServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
         $this->mergeConfigFrom(
-            __DIR__.'/../../config/repeat-toolkit.php',
+            \dirname(__DIR__, 2) . '/config/repeat-toolkit.php',
             'repeat-toolkit'
         );
-        //
     }
 
     public function boot(): void
     {
-
-
         if ($this->app->runningInConsole()) {
-
-
-
             $this->commands([
                 MakePoFromI::class,
                 \RepeatToolkit\Console\Commands\ExportRoutesForJs::class,
             ]);
         }
 
-        $packageBase = \dirname(__DIR__, 2); // iz src/Providers -> paket root
+        $packageBase = \dirname(__DIR__, 2); // root paketa
 
+        // -----------------------------
+        // DEFINICIJA SVIH PUBLISH MAPI
+        // -----------------------------
+        $publishAll = [
+
+            // Config
+            $packageBase . '/config/repeat-toolkit.php' => config_path('repeat-toolkit.php'),
+
+            // (opciono) dodatni config i18n ako postoji
+            // postaviće se dole i kao tag, ali ga dodaj i u "all"
+            // samo ako fajl postoji:
+            // (ne smeta ako ne postoji – proverićemo ispod)
+            // Views
+            $packageBase . '/resources/views/crud/view.blade.php'        => resource_path('views/crud/view.blade.php'),
+            $packageBase . '/resources/views/crud/create_partial.blade.php' => resource_path('views/crud/create_partial.blade.php'),
+            $packageBase . '/resources/views/layouts/app_layout.blade.php'  => resource_path('views/layouts/app_layout.blade.php'),
+
+            // JS helpers / vendor fajlovi
+            $packageBase . '/resources/js/i18n.js'        => resource_path('js/vendor/repeat-toolkit/i18n.js'),
+            $packageBase . '/resources/js/route-lite.js'  => resource_path('js/vendor/repeat-toolkit/route-lite.js'),
+
+            // JS directories (komponente i helperi)
+            $packageBase . '/resources/js/components'     => resource_path('js/components'),
+            $packageBase . '/resources/js/helpers'        => resource_path('js/helpers'),
+
+            // Vite plugin stub
+            $packageBase . '/resources/stubs/vite/repeat-vite-plugin.js'
+            => resource_path('js/vendor/repeat-toolkit/vite-plugin.js'),
+        ];
+
+        // Ako postoji dodatni i18n config u paketu, uključi ga i u "all"
+        $i18nConfigPath = $packageBase . '/config/i18n.php';
+        if (file_exists($i18nConfigPath)) {
+            $publishAll[$i18nConfigPath] = config_path('i18n.php');
+        }
+
+        // --------------------------------
+        // 1) CATCH-ALL PUBLISH (bez taga)
+        // --------------------------------
+        // Ovo omogućava: php artisan vendor:publish --provider="...ToolkitServiceProvider" --force
+        // da objavi SVE bez navođenja tagova.
+        $this->publishes($publishAll);
+
+        // --------------------------------
+        // 2) TAGOVI (radi kompatibilnosti)
+        // --------------------------------
+
+        // Config (glavni)
+        $this->publishes([
+            $packageBase . '/config/repeat-toolkit.php' => config_path('repeat-toolkit.php'),
+        ], 'repeat-toolkit-config');
+
+        // (opciono) i18n config ako postoji
+        if (file_exists($i18nConfigPath)) {
+            $this->publishes([
+                $i18nConfigPath => config_path('i18n.php'),
+            ], 'repeat-i18n-config');
+        }
+
+        // JS vendors (i18n helper)
         $this->publishes([
             $packageBase . '/resources/js/i18n.js' =>
                 resource_path('js/vendor/repeat-toolkit/i18n.js'),
         ], 'repeat-i18n-js');
 
-        // (opciono) ako imaš config/i18n.php u /resources ili /config paketa:
-        if (file_exists($packageBase . '/config/i18n.php')) {
-            $this->publishes([
-                $packageBase . '/config/i18n.php' => config_path('i18n.php'),
-            ], 'repeat-i18n-config');
-        }
-
+        // JS vendors (route-lite)
         $this->publishes([
-            __DIR__.'/../../resources/stubs/vite/repeat-vite-plugin.js'
-            => resource_path('js/vendor/repeat-toolkit/vite-plugin.js'),
-        ], 'repeat-vite-merge');
-
-
-        $this->publishes([
-            __DIR__.'/../../resources/js/route-lite.js' => resource_path('js/vendor/repeat-toolkit/route-lite.js'),
+            $packageBase . '/resources/js/route-lite.js' =>
+                resource_path('js/vendor/repeat-toolkit/route-lite.js'),
         ], 'repeat-js');
 
-        // publish views
+        // Vite plugin stub
         $this->publishes([
-            __DIR__.'/../resources/views/crud/view.blade.php' => resource_path('views/crud/view.blade.php'),
-            __DIR__.'/../resources/views/crud/create_partial.blade.php' => resource_path('views/crud/create_partial.blade.php'),
-            __DIR__.'/../resources/views/layouts/app_layout.blade.php' => resource_path('views/layouts/app_layout.blade.php'),
+            $packageBase . '/resources/stubs/vite/repeat-vite-plugin.js' =>
+                resource_path('js/vendor/repeat-toolkit/vite-plugin.js'),
+        ], 'repeat-vite-merge');
+
+        // Views
+        $this->publishes([
+            $packageBase . '/resources/views/crud/view.blade.php'           => resource_path('views/crud/view.blade.php'),
+            $packageBase . '/resources/views/crud/create_partial.blade.php' => resource_path('views/crud/create_partial.blade.php'),
+            $packageBase . '/resources/views/layouts/app_layout.blade.php'  => resource_path('views/layouts/app_layout.blade.php'),
         ], 'repeat-views');
 
+        // JS directories
         $this->publishes([
-            __DIR__.'/../../resources/js/components'      => resource_path('js/components'),
+            $packageBase . '/resources/js/components' => resource_path('js/components'),
         ], 'repeat-components');
 
         $this->publishes([
-            __DIR__.'/../../resources/js/helpers'      => resource_path('js/helpers'),
+            $packageBase . '/resources/js/helpers' => resource_path('js/helpers'),
         ], 'repeat-helpers');
-
-        $this->publishes([
-            __DIR__.'/../../config/repeat-toolkit.php' => config_path('repeat-toolkit.php'),
-        ], 'repeat-toolkit-config');
     }
 }
