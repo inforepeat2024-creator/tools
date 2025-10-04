@@ -41,6 +41,9 @@
         "RepeatToolkit\\Providers\\RouteMacroServiceProvider",
         "RepeatToolkit\\Providers\\ToolkitServiceProvider"
       ]
+    },
+    "branch-alias": {
+      "dev-main": "0.1-dev"
     }
   },
   "scripts": {
