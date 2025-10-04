@@ -39,9 +39,9 @@ class ToolkitServiceProvider extends ServiceProvider
             // samo ako fajl postoji:
             // (ne smeta ako ne postoji – proverićemo ispod)
             // Views
-            $packageBase . '/resources/views/crud/view.blade.php'        => resource_path('views/crud/view.blade.php'),
-            $packageBase . '/resources/views/crud/create_partial.blade.php' => resource_path('views/crud/create_partial.blade.php'),
-            $packageBase . '/resources/views/layouts/app_layout.blade.php'  => resource_path('views/layouts/app_layout.blade.php'),
+            $packageBase . '/src/resources/views/crud/view.blade.php'        => resource_path('views/crud/view.blade.php'),
+            $packageBase . '/src/resources/views/crud/create_partial.blade.php' => resource_path('views/crud/create_partial.blade.php'),
+            $packageBase . '/src/resources/views/layouts/app_layout.blade.php'  => resource_path('views/layouts/app_layout.blade.php'),
 
             // JS helpers / vendor fajlovi
             $packageBase . '/resources/js/i18n.js'        => resource_path('js/vendor/repeat-toolkit/i18n.js'),
@@ -105,9 +105,9 @@ class ToolkitServiceProvider extends ServiceProvider
 
         // Views
         $this->publishes([
-            $packageBase . '/resources/views/crud/view.blade.php'           => resource_path('views/crud/view.blade.php'),
-            $packageBase . '/resources/views/crud/create_partial.blade.php' => resource_path('views/crud/create_partial.blade.php'),
-            $packageBase . '/resources/views/layouts/app_layout.blade.php'  => resource_path('views/layouts/app_layout.blade.php'),
+            $packageBase . '/src/resources/views/crud/view.blade.php'           => resource_path('views/crud/view.blade.php'),
+            $packageBase . '/src/resources/views/crud/create_partial.blade.php' => resource_path('views/crud/create_partial.blade.php'),
+            $packageBase . '/src/resources/views/layouts/app_layout.blade.php'  => resource_path('views/layouts/app_layout.blade.php'),
         ], 'repeat-views');
 
         // JS directories
