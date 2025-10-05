@@ -1,11 +1,7 @@
-import AbstractComponent from "../abstract_component.js";
-import FormInputComponent from "./form_input_component.js";
-import NiceSelect from "nice-select2";
+
 import Select2Input from "./select2_input.js";
-import RequestHandler from "../../helpers/request_handler.js";
-import {Ziggy} from "../../ziggy.js";
-import {MotoSearchFiltersChangedEvent} from "../../events/moto_search_filters_change_filter.js";
-import {MotorcycleBrandChanged} from "../../events/motorcyle_brand_changed.js";
+import RequestHelper from "../../helpers/request_helper";
+
 
 export default class CitySelect extends Select2Input {
 
@@ -30,9 +26,9 @@ export default class CitySelect extends Select2Input {
 
     fetch()
     {
-        let request_handler = new RequestHandler();
 
-        request_handler.makeRequest('POST', route('zip_codes.get_all_from_params'), {'filters': {'filter__country_id__equal': this.state.country_id}, 'order_by': {'city': 'asc'}}).then(response => {
+
+        RequestHelper.makeRequest('POST', route('zip_codes.get_all_from_params'), {'filters': {'filter__country_id__equal': this.state.country_id}, 'order_by': {'city': 'asc'}}).then(response => {
 
             if(response.success)
             {

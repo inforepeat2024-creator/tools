@@ -1,9 +1,9 @@
-import AbstractComponent from "../abstract_component.js";
+
 import FormInputComponent from "./form_input_component.js";
-import NiceSelect from "nice-select2";
+
 import Choices from "choices.js";
-import EventHandler from "../../helpers/event_handler.js";
-import {MotoSearchFiltersClear} from "../../events/moto_search_filters_clear.js";
+
+
 
 export default class Select2Input extends FormInputComponent {
 
@@ -22,7 +22,7 @@ export default class Select2Input extends FormInputComponent {
         });
 
 
-        EventHandler.subscribeToEvent(MotoSearchFiltersClear.type, this);
+
 
 
 

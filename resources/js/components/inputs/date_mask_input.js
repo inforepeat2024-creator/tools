@@ -1,5 +1,3 @@
-import AbstractComponent from "../abstract_component.js";
-import FormInputComponent from "./form_input_component.js";
 import TextInput from "./text_input.js";
 
 export default class DateMaskInput extends TextInput {

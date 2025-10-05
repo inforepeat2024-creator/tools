@@ -1,7 +1,7 @@
-import AbstractComponent from "../abstract_component.js";
-import FormInputComponent from "./form_input_component.js";
+
 import SelectInput from "./select_input.js";
-import RequestHandler from "../../helpers/request_handler.js";
+import RequestHelper from "../../helpers/request_helper";
+
 
 export default class FetchSelect extends SelectInput {
 
@@ -24,9 +24,9 @@ export default class FetchSelect extends SelectInput {
 
     fetchData(){
 
-        let request_handler = new RequestHandler();
 
-        request_handler.makeRequest("POST", this.state.fetch_url, this.state.fetch_data ?? {} ).then(response => {
+
+        RequestHelper.makeRequest("POST", this.state.fetch_url, this.state.fetch_data ?? {} ).then(response => {
             this.state.element_collection = response.data;
             this.state.element_collection[""] = __i("Nije odabrano");
             this.render();

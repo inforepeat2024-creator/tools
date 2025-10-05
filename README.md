@@ -67,6 +67,9 @@ await loadTranslations(locale, `/medicinski_turizam/public/i18n/${locale}.json`,
 ```
 
 
+Instaliraj npm
+npm install choices.js inputmask
+
 ## I18n prevodi
 
 1. Generisanje prevoda fajlova:

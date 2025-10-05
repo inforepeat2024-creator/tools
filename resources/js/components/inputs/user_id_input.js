@@ -1,4 +1,4 @@
-import AbstractComponent from "../abstract_component.js";
+
 import FormInputComponent from "./form_input_component.js";
 
 export default class UserIdInput extends FormInputComponent {
