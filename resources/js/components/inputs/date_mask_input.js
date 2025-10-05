@@ -1,4 +1,5 @@
 import TextInput from "./text_input.js";
+import Inputmask from "inputmask";
 
 export default class DateMaskInput extends TextInput {
 
