@@ -12,6 +12,36 @@ class AbstractModel extends Model
     use ModelActionsTrait;
     protected $guarded =  [];
 
+    protected $translation_model;
+
+    /**
+     * Sve prevode (svi jezici)
+     */
+    public function translations(): HasMany
+    {
+        // Ako FK nije konvencionalan, dodaj ga kao 2. argument, npr. ->hasMany($this->translation_model, 'clinic_id');
+        return $this->hasMany($this->translation_model);
+    }
+
+    /**
+     * Prevodi za trenutni locale (kao hasOne sa WHERE uslovom) — mozes eager-load:
+     * Model::with('currentTranslation')->get();
+     */
+    public function translation(?string $locale = null)
+    {
+        $locale = $locale ?: app()->getLocale();
+
+        $language_id = config('languages')[$locale];
+
+        return $this->hasOne($this->translation_model)
+            ->where('language_id', $language_id)->first();
+        // Ako koristiš language_id umesto locale:
+        // ->where('language_id', $this->mapLocaleToLanguageId($locale));
+    }
+
+
+
+
 
     public function getHtmlTitleAttribute()
     {

@@ -11,4 +11,11 @@ export default class DateHelper {
         return `${day.padStart(2, '0')}.${month.padStart(2, '0')}.${year}`;
     }
 
+    static getTodayMysqlDate() {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
 }

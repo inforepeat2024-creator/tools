@@ -68,8 +68,12 @@ await loadTranslations(locale, `/medicinski_turizam/public/i18n/${locale}.json`,
 
 
 Instaliraj npm
+
+
+
 npm install choices.js inputmask
 
+@import "choices.js/src/styles/choices";
 ## I18n prevodi
 
 1. Generisanje prevoda fajlova:
@@ -90,5 +94,12 @@ php artisan repeat:routes:export resources/js/routes.gen.json --pretty --absolut
 
 
 ---
+
+5. generate web types za komponente  i pokretati sa php generate-web-types.php
+- u package.json na kraju dodati
+- 
+- `    "web-types": [
+        "./.web-types.json"
+    ]`
 
 

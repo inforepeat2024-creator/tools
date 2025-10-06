@@ -1,5 +1,6 @@
 
 import AbstractComponent from "../abstract_component.js";
+import __i from "../../vendor/repeat-toolkit/i18n.js";
 
 
 export class AbstractForm extends AbstractComponent {
@@ -50,7 +51,7 @@ export class AbstractForm extends AbstractComponent {
         const csrf = document.createElement('input');
         csrf.type = 'hidden';
         csrf.name = '_token';
-        csrf.value = window.csrfToken;
+        csrf.value = (document.querySelector('meta[name="csrf-token"]') != null ? document.querySelector('meta[name="csrf-token"]').content : "");
 
         this.querySelector('form').appendChild(csrf);
 

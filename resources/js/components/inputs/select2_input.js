@@ -2,7 +2,7 @@
 import FormInputComponent from "./form_input_component.js";
 
 import Choices from "choices.js";
-
+import __i from "../../vendor/repeat-toolkit/i18n.js";
 
 
 export default class Select2Input extends FormInputComponent {

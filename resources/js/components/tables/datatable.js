@@ -1,7 +1,7 @@
 
 
 import RequestHelper from "../../helpers/request_helper";
-import AbstractComponent from "/../abstract_component.js";
+import AbstractComponent from "../abstract_component.js";
 import __i from "../../vendor/repeat-toolkit/i18n.js";
 
 import {route} from "../../helpers/router-provider.js";

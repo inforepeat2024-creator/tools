@@ -7,6 +7,8 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use RepeatToolkit\Abstracts\AbstractModelUtilities;
 use RepeatToolkit\Helpers\StaticHelpers\DbHelper;
 
@@ -29,7 +31,7 @@ class CrudController extends AbstractController
 
     public  function getPartials()
     {
-        return array_merge(['basic' => __i("Osnovno")], $this->getAdditionalPartials());
+        return array_merge(['basic' => __i("Osnovni podaci")], $this->getAdditionalPartials());
     }
 
     public function getAdditionalPartials()
@@ -298,12 +300,14 @@ class CrudController extends AbstractController
             {
                 $new_model = $this->model_utils->createFromParams($processed_input);
 
+                $this->afterStore($request, $new_model->id);
+
                 return $this->redirectWithSuccess(__i("Uspešna akcija"), route($this->model_utils->getTableName() . '.create_partial', ['basic', $new_model->id]));
             }
             else
             {
                 $this->model_utils->updateFromParams(['id' => $id], $processed_input);
-
+                $this->afterStore($request, $id);
                 return $this->redirectWithSuccess();
             }
         }
@@ -316,6 +320,80 @@ class CrudController extends AbstractController
 
 
     }
+
+
+    public function afterStore(Request $request, $id)
+    {
+        $model = $this->model_utils->findById($id);
+
+        // --- LOGO (single) ---
+        if ($request->hasFile('logo')) {
+            /** @var \Illuminate\Http\UploadedFile $file */
+            $file = $request->file('logo');
+
+            if (!$file->isValid()) {
+                abort(400, 'Upload nije validan: ' . $file->getErrorMessage());
+            }
+
+            $filename = Str::uuid().'.'.($file->getClientOriginalExtension() ?: 'bin');
+            $target   = $this->model_utils->getTableName() . "/logos/{$filename}";
+
+            $stream = fopen($file->getPathname(), 'r');
+            Storage::disk('public')->put($target, $stream);
+            if (is_resource($stream)) fclose($stream);
+
+            $model->logo()->create([
+                'collection'    => 'logo',
+                'disk'          => 'public',
+                'path'          => $target,
+                'original_name' => $file->getClientOriginalName(),
+                'mime_type'     => $file->getMimeType(),
+                'size'          => $file->getSize(),
+                'title'         => $request->input('logo_title'),
+                'alt'           => $request->input('logo_alt'),
+            ]);
+        }
+
+        // --- PHOTOS (multiple) ---
+        // Očekuje <input type="file" name="photos[]" multiple>
+        if ($request->hasFile('photos')) {
+
+            $files = $request->file('photos');
+            $titles = (array) $request->input('photos_title', []); // npr. photos_title[0], photos_title[1]...
+            $alts   = (array) $request->input('photos_alt',   []); // npr. photos_alt[0], photos_alt[1]...
+
+            foreach ((array) $files as $idx => $photo) {
+                if (!$photo instanceof \Illuminate\Http\UploadedFile) {
+                    continue;
+                }
+                if (!$photo->isValid()) {
+                    // Preskoči nevalidan fajl umesto da prekine ceo proces
+                    // (može i abort ako hoćeš strože)
+                    continue;
+                }
+
+                $filename = Str::uuid().'.'.($photo->getClientOriginalExtension() ?: 'bin');
+                $target   = $this->model_utils->getTableName() . "/photos/{$filename}";
+
+                $stream = fopen($photo->getPathname(), 'r');
+                Storage::disk('public')->put($target, $stream);
+                if (is_resource($stream)) fclose($stream);
+
+                // Ako nemaš eksplicitnu relaciju photos(), zameni sa generičkom npr. $model->media()
+                $model->photos()->create([
+                    'collection'    => 'photos',
+                    'disk'          => 'public',
+                    'path'          => $target,
+                    'original_name' => $photo->getClientOriginalName(),
+                    'mime_type'     => $photo->getMimeType(),
+                    'size'          => $photo->getSize(),
+                    'title'         => $titles[$idx] ?? null,
+                    'alt'           => $alts[$idx] ?? null,
+                ]);
+            }
+        }
+    }
+
 
     public function destroy($id)
     {

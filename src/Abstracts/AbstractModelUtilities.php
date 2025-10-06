@@ -2,6 +2,7 @@
 
 namespace RepeatToolkit\Abstracts;
 
+use Illuminate\Support\Facades\Storage;
 use RepeatToolkit\Abstracts\AbstractModel;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -1323,7 +1324,7 @@ abstract class AbstractModelUtilities
     public function afterModelUpdate($model)
     {
 
-        $this->dealWithDefaultRow($model);
+
 
     }
 
@@ -1350,7 +1351,23 @@ abstract class AbstractModelUtilities
     public function afterModelDelete($model)
     {
 
-        $this->dealWithDefaultRow($model);
+        // Obrisi logo ako postoji
+        if (method_exists($model, 'logo'))
+        {
+            if ($model->logo) {
+                Storage::disk($model->logo->disk)->delete($model->logo->path);
+                $model->logo->delete();
+            }
+        }
+
+
+        // Ako ima vise fajlova (npr. photos)
+        if (method_exists($model, 'photos')) {
+            foreach ($model->photos as $photo) {
+                Storage::disk($photo->disk)->delete($photo->path);
+                $photo->delete();
+            }
+        }
 
     }
 

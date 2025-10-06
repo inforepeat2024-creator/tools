@@ -52,6 +52,10 @@ class ToolkitServiceProvider extends ServiceProvider
             $packageBase . '/resources/js/components'     => resource_path('js/components'),
             $packageBase . '/resources/js/helpers'        => resource_path('js/helpers'),
 
+
+            $packageBase. '/generate-web-types.php' => base_path('generate-web-types.php'),
+
+
             // Vite plugin stub
             $packageBase . '/resources/stubs/vite/repeat-vite-plugin.js'
             => resource_path('js/vendor/repeat-toolkit/vite-plugin.js'),
@@ -121,5 +125,9 @@ class ToolkitServiceProvider extends ServiceProvider
         $this->publishes([
             $packageBase . '/resources/js/helpers' => resource_path('js/helpers'),
         ], 'repeat-helpers');
+
+        $this->publishes([
+            __DIR__ . '/../../generate-web-types.php' => base_path('generate-web-types.php'),
+        ], 'web-types');
     }
 }
