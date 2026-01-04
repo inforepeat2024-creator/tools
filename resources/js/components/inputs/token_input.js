@@ -1,4 +1,4 @@
-
+import __i from "../../vendor/repeat-toolkit/i18n.js";
 
 
 

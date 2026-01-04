@@ -23,14 +23,20 @@ class RouteMacroServiceProvider extends ServiceProvider
             Route::get("{$uri}/delete/{id}", "{$controller}@destroy")->name("{$uri}.get_delete");
             Route::get("{$uri}/create-partial/{slug?}/{id?}", "{$controller}@createPartial")->name("{$uri}.create_partial");
             Route::post("{$uri}/store-partial/{id?}", "{$controller}@storePartial")->name("{$uri}.store_partial");
+            Route::any("{$uri}/update-column/{id}/{column}/{value}", "{$controller}@updateColumn")->name("{$uri}.update_column");
+            Route::post("{$uri}/delete-from-params", "{$controller}@deleteFromParams")->name("{$uri}.delete_from_params");
+        });
 
+        Route::macro('publicResource', function ($uri, $controller) {
+
+            Route::get("{$uri}/search", "{$controller}@search")->name("{$uri}.search");
             Route::post("{$uri}/get-one-from-params", "{$controller}@getOneFromParams")->name("{$uri}.get_one_from_params");
             Route::post("{$uri}/get-all-from-params", "{$controller}@getAllFromParams")->name("{$uri}.get_all_from_params");
             Route::post("{$uri}/get-all-for-select", "{$controller}@getAllForSelect")->name("{$uri}.get_all_for_select");
             Route::post("{$uri}/get-all-paginate", "{$controller}@getAllPaginate")->name("{$uri}.get_all_paginate");
             Route::any("{$uri}/get-all-autocomplete", "{$controller}@getAllAutocomplete")->name("{$uri}.get_all_autocomplete");
             Route::post("{$uri}/find-by-id/{id}", "{$controller}@findById")->name("{$uri}.find_by_id");
-            Route::post("{$uri}/delete-from-params", "{$controller}@deleteFromParams")->name("{$uri}.delete_from_params");
+
         });
 
 

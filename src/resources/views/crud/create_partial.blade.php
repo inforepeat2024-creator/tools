@@ -4,7 +4,6 @@
 
 @section('content')
 
-
     <div class="card h-100">
 
         <div class="card-title p-3">

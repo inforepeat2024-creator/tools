@@ -17,12 +17,15 @@ class DbHelper
         try {
 
 
-            $cache_key = 17;
+            $cache_key = rand(1, 100);
 
 
             //dd(Cache::get($table . '_column_types' . $cache_key));
 
             $table_columns = Cache::get($table . '_columns' . $cache_key) != null  ? Cache::get($table . '_columns' . $cache_key) : Schema::getColumnListing($table);
+
+
+
 
 
 
@@ -41,8 +44,10 @@ class DbHelper
             }
 
 
-            Cache::forever($table . '_columns'. $cache_key, $table_columns);
-            Cache::forever($table . '_column_types'. $cache_key, $types);
+           /* Cache::forever($table . '_columns'. $cache_key, $table_columns);
+            Cache::forever($table . '_column_types'. $cache_key, $types);*/
+
+
 
 
 
@@ -53,7 +58,11 @@ class DbHelper
             $input = self::processDatetimeFields($table, $input, $table_columns,$types);
 
 
-
+            foreach ($input as $key => $value)
+            {
+                if(!in_array($key, $table_columns))
+                    unset($input[$key]);
+            }
 
         }
         catch (\Exception $e)
@@ -87,7 +96,7 @@ class DbHelper
 
             try {
                 //dd(Schema::getColumnType($table, $column));
-                if(!in_array($column, ['created_at', 'updated_at', 'id', 'order']) && in_array($types[$column], ["date"]))
+                if(!in_array($column, ['created_at', 'updated_at', 'id', 'order']) && in_array($types[$column], ["date", 'timestamp']))
                 {
                     if(isset($input[$column]))
                         $input[$column] = DateTimeHelper::formatDateSql(($input[$column]));
@@ -174,10 +183,14 @@ class DbHelper
 
 
 
+
+
         foreach ($table_columns as $column)
         {
+
+
             try {
-                if(  !in_array($column, ['created_at', 'updated_at', 'id', 'order']) && in_array($types[$column], ["integger", "boolean"]))
+                if(  !in_array($column, ['created_at', 'updated_at', 'id', 'order']) && in_array($types[$column], ["integger", "boolean", 'tinyint']))
                 {
                     if(!isset($input[$column]) && isset($input['include_' . $column]))
                         $input[$column] = 0;
@@ -193,7 +206,7 @@ class DbHelper
 
         }
 
-       // dd($input);
+
 
         return $input;
     }

@@ -12,9 +12,7 @@ class UrlHelper
 
     public static function isLocalhost()
     {
-        //return false;
-        Log::info(url()->current());
-
+        
         return Str::contains(url()->current(), ['localhost', '127.0.0.1']);
 
     }

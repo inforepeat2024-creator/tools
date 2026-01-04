@@ -8,13 +8,13 @@ use Symfony\Component\Finder\Finder;
 
 class MakePoFromI extends Command
 {
-    protected $signature = 'i18n:make 
-        {--locales= : CSV locales, npr: sr,en} 
-        {--paths= : CSV putanje za skeniranje} 
-        {--ext= : CSV ekstenzije, npr: php,blade.php,js} 
-        {--po-out= : Folder za .po fajlove} 
-        {--json-out= : Folder za JSON fajlove (default: public/i18n)} 
-        {--format=both : po|json|both} 
+    protected $signature = 'i18n:make
+        {--locales= : CSV locales, npr: sr,en}
+        {--paths= : CSV putanje za skeniranje}
+        {--ext= : CSV ekstenzije, npr: php,blade.php,js}
+        {--po-out= : Folder za .po fajlove}
+        {--json-out= : Folder za JSON fajlove (default: public/i18n)}
+        {--format=both : po|json|both}
         {--prune : U JSON ukloni ključeve kojih više nema u kodu}';
 
     protected $description = 'Skenira __i/_i ključeve i generiše .po i/ili JSON prevode (za frontend).';
@@ -24,7 +24,7 @@ class MakePoFromI extends Command
         $fs = new Filesystem();
 
         // 1) Konfig (možeš u config/i18n.php i povući odatle; ovde radi self-contained)
-        $defaultLocales = ['sr','en'];
+        $defaultLocales = ['sr'];
         $defaultPaths   = [base_path('app'), resource_path('views'), resource_path('js')];
         $defaultExt     = ['php','blade.php','js'];
         $defaultJsonOut = public_path('i18n');

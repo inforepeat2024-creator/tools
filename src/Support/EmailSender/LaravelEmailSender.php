@@ -4,6 +4,7 @@ namespace RepeatToolkit\Support\EmailSender;
 
 
 
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Mail;
 
 final class LaravelEmailSender implements EmailSenderInterface
@@ -41,11 +42,15 @@ final class LaravelEmailSender implements EmailSenderInterface
             $m->subject($message->getSubject());
 
             // Body (HTML + text fallback)
+
+
+
             if ($html = $message->getHtml()) {
-                $m->setBody($html, 'text/html');
+
+                $m->html($html, 'text/html');
             }
             if ($text = $message->getText()) {
-                $m->addPart($text, 'text/plain');
+                $m->text($text, 'text/plain');
             }
 
             // Attachments

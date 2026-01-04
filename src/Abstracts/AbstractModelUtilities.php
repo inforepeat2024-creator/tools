@@ -7,6 +7,7 @@ use RepeatToolkit\Abstracts\AbstractModel;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+
 use RepeatToolkit\Helpers\StaticHelpers\DateTimeHelper;
 use RepeatToolkit\Helpers\StaticHelpers\TextHelper;
 use RepeatToolkit\Helpers\Traits\DbTableTrait;
@@ -38,6 +39,13 @@ abstract class AbstractModelUtilities
 
     protected $default_order_bys = ['id' => 'desc'];
 
+    /**
+     * Ako želiš da ograničiš na određene kolone u _translations tabeli,
+     * popuni niz ispod (npr. ['name','title','slug','excerpt','description','content']).
+     * Ako ostane prazan, koristiće se sve kolone osim onih u blacklist-u.
+     * @var string[]
+     */
+    protected array $searchable_translation_columns = [];
 
     public $add_user_id_filter = true;
 
@@ -106,7 +114,7 @@ abstract class AbstractModelUtilities
      */
     public function getTranslationsTableName()
     {
-        return $this->translations_table_name;
+        return $this->getTableName() . "_translations";
     }
 
     /**
@@ -133,6 +141,11 @@ abstract class AbstractModelUtilities
         return $model->getTable();
     }
 
+    public function getTranslationsForeignKey(): string
+    {
+        return Str::singular($this->getTableName()) . '_id';
+    }
+
     private function alterQueryWithAggregates($query, $aggregates = [])
     {
         foreach ($this->aggregates as $aggregate)
@@ -149,6 +162,62 @@ abstract class AbstractModelUtilities
 
 
 
+
+        return $query;
+    }
+
+    private function addTranslationsSearch($query, string $search_term)
+    {
+        // Ako model nema relaciju translations/translation, preskoči
+        $model = new $this->model();
+        $hasTranslations = method_exists($model, 'translations');
+        $hasTranslation  = method_exists($model, 'translation');
+
+        if (!$hasTranslations && !$hasTranslation) {
+            return $query;
+        }
+
+        $langId = config('languages')[app()->getLocale()];
+        $tTable = $this->getTranslationsTableName();
+
+        // Uzmemo sve kolone iz _translations tabele, pa izbacimo standardne
+        $allTCols = $this->getTableColumnsArray($tTable);
+        $blacklist = [
+            'id',
+            $this->getTranslationsForeignKey(),
+            'language_id',
+            'created_at','updated_at','deleted_at'
+        ];
+
+        $cols = $this->searchable_translation_columns ?: array_values(array_diff($allTCols, $blacklist));
+        if (empty($cols)) {
+            // nema smislenih kolona – prekini tiho
+            return $query;
+        }
+
+        $like = "%{$search_term}%";
+
+        // whereHas za pluralnu ili singularnu relaciju
+        $callback = function ($q) use ($langId, $cols, $like) {
+            // filtriraj na aktivni jezik
+            $q->where('language_id', $langId)
+                ->where(function($qq) use ($cols, $like) {
+                    foreach ($cols as $i => $col) {
+                        if ($i === 0) {
+                            $qq->where($col, 'like', $like);
+                        } else {
+                            $qq->orWhere($col, 'like', $like);
+                        }
+                    }
+                });
+        };
+
+        if ($hasTranslations) {
+            $query->orWhereHas('translations', $callback);
+        }
+        if ($hasTranslation) {
+            $query->orWhereHas('translation', $callback);
+        }
 
         return $query;
     }
@@ -216,7 +285,8 @@ abstract class AbstractModelUtilities
                     });
 
 
-
+                    // 2) NOVO: translations pretraga na aktivnom jeziku
+                    $this->addTranslationsSearch($query, $search_term);
 
                     $query->orWhere(function ($query) use ($search_term){
 
@@ -385,7 +455,24 @@ abstract class AbstractModelUtilities
     private function alterQueryWithOrderBys($query, array $order_by = [])
     {
 
+        // === RANDOM (deterministički) ============================================
+        // Specijalni ključ '__random' => seed (int). Ako je setovan, pravimo
+        // stabilan poredak po SHA2(CONCAT(id, seed)).
+        if (isset($order_by['__random'])) {
+            $seed = (int) $order_by['__random'];
+            if ($seed === 0) {
+                // fallback npr. dnevni seed
+                $seed = (int) now()->format('Ymd');
+            }
 
+            // Napomena: koristi pun naziv tabele da izbegnemo kolizije join-ova
+            $table = $this->getTableName();
+            $query->orderByRaw("SHA2(CONCAT({$table}.id, ?), 256) asc", [$seed]);
+
+            // pošto smo eksplicitno zadali poredak, VRATI se odmah (bez default ordera)
+            return $query;
+        }
+        // ========================================================================
 
 
 
@@ -489,6 +576,17 @@ abstract class AbstractModelUtilities
                     $converted_value = $value;
 
                 break;
+
+            case "in_all":
+
+                if (!is_array($value))
+                    $converted_value = json_decode($value);
+                else
+                    $converted_value = $value;
+
+                break;
+
+            // ...
 
 
 
@@ -901,6 +999,27 @@ abstract class AbstractModelUtilities
                             $query = $query->whereDoesntHave($relation, function ($query){
                                 $query->where("id", ">=", 1);
                             });
+                        }
+                        else if($operator == 'in_all')
+                        {
+                           
+                                $values = $this->convertFilterValueBasedOnOperator('in_all', $value, $column);
+
+                                if (!is_array($values)) {
+                                    $values = [$values];
+                                }
+
+                                $count = count($values);
+
+                                $query = $query->whereHas(
+                                    $relation,
+                                    function ($q) use ($column, $values) {
+                                        $q->whereIn($column, $values);
+                                    },
+                                    '=',
+                                    $count 
+                                );
+                           
                         }
                         else
                         {

@@ -16,8 +16,18 @@ if (!function_exists('__i')) {
     {
         $locale = $locale ?: app()->getLocale();
 
+
+
+
+
+        $result = (PoLoader::translate($key, $locale, 'messages'));
+
+    
         // 1) Probaj direktno iz .po (bez gettext-a)
         if ($tr = PoLoader::translate($key, $locale, 'messages')) {
+
+
+
             foreach ($replace as $k => $v) {
                 $tr = str_replace(':'.$k, $v, $tr);
             }

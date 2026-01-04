@@ -10,25 +10,24 @@ trait ModelActionsTrait
 
         if (method_exists($this, 'canEdit') ? $this->canEdit() : true) {
             $actions[] = [
-                'label' => 'Edit',
+                'label' => __i("Izmeni"),
                 'type' => 'edit',
                 'url' => route($this->getRoutePrefix() . '.create_partial', ['basic', $this->id]),
             ];
+            // Optional custom model-specific actions inserted right after edit
+            if (method_exists($this, 'customActions')) {
+                $actions = array_merge($actions, $this->customActions());
+            }
         }
 
         if (method_exists($this, 'canDelete') ? $this->canDelete() : true) {
             $actions[] = [
-                'label' => __i("Brisanje"),
+                'label' => __i("Obriši"),
                 'type' => 'delete',
                 'url' => route($this->getRoutePrefix() . '.get_delete', $this->id),
-                'method' => 'DELETE',
+                'method' => 'GET',
                 'confirm' => true,
             ];
-        }
-
-        // Optional custom model-specific actions
-        if (method_exists($this, 'customActions')) {
-            $actions = array_merge($actions, $this->customActions());
         }
 
         return $actions;

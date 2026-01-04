@@ -23,6 +23,13 @@ class AppHelper
         return "v" . $num;
     }
 
+    public static function getSupportedCurrencies()
+    {
+        return [
+            'EUR',
+        //    'RSD'
+        ];
+    }
 
     public static function editMode()
     {
