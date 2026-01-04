@@ -614,6 +614,12 @@ class CrudController extends AbstractController
         }
 
 
+        if($request->has('photos_removed_ids'))
+        {
+            $model->photos()->whereIn('id', $request->input('photos_removed_ids'))->delete();
+
+        }
+
     }
 
     protected function saveTranslations($model, array $input): void
@@ -672,16 +678,16 @@ class CrudController extends AbstractController
 
             if($payload != null)
 
-            // dodaj FK + language_id + timestamps
-            $rows[] = array_merge(
-                [
-                    $fk           => $model->getKey(),
-                    'language_id' => $langId,
-                    'created_at'  => $now,
-                    'updated_at'  => $now,
-                ],
-                $payload
-            );
+                // dodaj FK + language_id + timestamps
+                $rows[] = array_merge(
+                    [
+                        $fk           => $model->getKey(),
+                        'language_id' => $langId,
+                        'created_at'  => $now,
+                        'updated_at'  => $now,
+                    ],
+                    $payload
+                );
         }
 
 
