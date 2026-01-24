@@ -624,86 +624,123 @@ class CrudController extends AbstractController
 
     protected function saveTranslations($model, array $input): void
     {
-        $table     = $this->model_utils->getTranslationsTableName();
-        $fk        = $this->model_utils->getTranslationsForeignKey();
-        $langs     = (array) config('languages'); // ['sr' => 1, 'en' => 2, ...]
-        //$fields    = $this->model_utils->getTranslatableFields();
-        $fields = [];
-        $now       = now();
+        $table = $this->model_utils->getTranslationsTableName();   // npr. clinics_translations
+        $fk    = $this->model_utils->getTranslationsForeignKey();  // npr. clinic_id
+        $langs = (array) config('languages');                      // ['sr'=>1,'en'=>2,'de'=>3]
 
-        // Skupljamo vrednosti po jeziku: rows[$langId] = ['field1' => ..., 'field2' => ...]
         $rowsByLang = [];
-
-
-
+        $fields = [];
 
         foreach ($input as $col_name => $value) {
 
-            if(!is_array($value))
+            if (!is_array($value)) {
                 continue;
+            }
 
+            // npr: $input['description'] = ['sr'=>'...', 'en'=>'...']
             $field = $col_name;
+            $fields[] = $field;
 
-
-            // $input['description'] = ['sr'=>'...', 'en'=>'...']
             $found_lang_value = null;
-            foreach ($input[$field] as $code => $value) {
+
+            foreach ($value as $code => $val) {
+
                 if (!array_key_exists($code, $langs)) {
-                    continue; // jezik nije u configu
+                    continue;
                 }
-                $langId = $langs[$code];
 
-                $fields[] = $field;
+                $langId = (int) $langs[$code];
 
-                //set for other languages not to be empty
-                if($value != null && $found_lang_value == null)
-                    $found_lang_value = $value[$langId];
+                // ✅ fix: $val je string/HTML
+                if ($val !== null && $val !== '' && $found_lang_value === null) {
+                    $found_lang_value = $val;
+                }
 
-                // inicijalizuj strukturu reda za dati jezik
                 $rowsByLang[$langId] ??= [];
-                // prazne stringove tretiraj kao NULL (po želji)
-                $rowsByLang[$langId][$field] = ($value === '') ? $found_lang_value : $value;
+                $rowsByLang[$langId][$field] = ($val === '' || $val === null)
+                    ? $found_lang_value
+                    : $val;
             }
         }
 
-        if (empty($rowsByLang)) {
-            return; // nema prevoda u inputu
+        $fields = array_values(array_unique($fields));
+
+        if (empty($rowsByLang) || empty($fields)) {
+            return;
         }
 
 
 
-        // Pretvori u niz redova za upsert
-        $rows = [];
-        foreach ($rowsByLang as $langId => $payload) {
 
-            if($payload != null)
+        // ---- Dinamički pronađi translation model class iz table name ----
+        // clinics_translations -> ClinicsTranslation
+        $base = Str::replaceLast('_translations', '', $table);
+        $studly = Str::studly($base);
+        $modelShort = $studly . 'Translation';
 
-                // dodaj FK + language_id + timestamps
-                $rows[] = array_merge(
-                    [
-                        $fk           => $model->getKey(),
-                        'language_id' => $langId,
-                        'created_at'  => $now,
-                        'updated_at'  => $now,
-                    ],
-                    $payload
-                );
+        // Probaj namespace-e (dodaj/izbaci po potrebi)
+        $namespaces = [
+            'App\\Models\\',
+            'Modules\\Clinics\\Entities\\',
+            'Modules\\Core\\Entities\\',
+            'Modules\\Blog\\Entities\\',
+        ];
+
+        $translationModelClass = null;
+        foreach ($namespaces as $ns) {
+            $candidate = $ns . $modelShort;
+            if (class_exists($candidate)) {
+                $translationModelClass = $candidate;
+                break;
+            }
         }
 
 
 
-        $result = DB::table($table)->upsert(
-            $rows,
-            [$fk, 'language_id'],
-            array_merge($fields, ['updated_at'])
-        );
+        if (!$translationModelClass) {
+            // ako hoćeš silent fail umesto exception, zameni sa return;
+            throw new \RuntimeException("Translation model class not found for table {$table} (expected {$modelShort}).");
+        }
+        // ---------------------------------------------------------------
 
+        $parentId = $model->getKey();
 
+        DB::transaction(function () use ($translationModelClass, $table, $fk, $parentId, $rowsByLang, $fields) {
 
-        // UPSERT: unique ključ je [$fk, 'language_id'], update-ujemo samo prevodiva polja + updated_at
+            foreach ($rowsByLang as $langId => $payload) {
 
+                if (!$payload) {
+                    continue;
+                }
 
+                /** @var \Illuminate\Database\Eloquent\Model $row */
+                $row = (new $translationModelClass())
+                    ->setTable($table)
+                    ->newQuery()
+                    ->where($fk, $parentId)
+                    ->where('language_id', (int) $langId)
+                    ->first();
 
+                if (!$row) {
+                    $row = (new $translationModelClass())->setTable($table);
+                    $row->{$fk} = $parentId;
+                    $row->language_id = (int) $langId;
+                } else {
+                    $row->setTable($table);
+                }
+
+                foreach ($fields as $field) {
+                    if (array_key_exists($field, $payload)) {
+                        $row->{$field} = $payload[$field];
+                    }
+                }
+
+                // ✅ Ne snimaj bez promene (da observers ne pucaju bez razloga)
+                if ($row->isDirty()) {
+                    $row->save(); // <-- Eloquent events/observers rade
+                }
+            }
+        });
     }
 
     public function authorizeDelete($model)
