@@ -17,6 +17,7 @@ use RepeatToolkit\Helpers\StaticHelpers\DbHelper;
 use RepeatToolkit\Helpers\StaticHelpers\TextHelper;
 
 
+
 class CrudController extends AbstractController
 {
     use AuthorizesRequests;
@@ -374,7 +375,7 @@ class CrudController extends AbstractController
 
             }
 
-            //dd($processed_input);
+
 
             if($id == null)
             {
@@ -414,6 +415,124 @@ class CrudController extends AbstractController
 
     }
 
+    public function getRowsForContext(Request $request)
+    {
+        return [];
+    }
+
+    public function syncItems(Request $request)
+    {
+
+        $input = $request->all();
+
+
+
+        $existing_items = $this->getRowsForContext($request);
+
+        $bulk_input = $input[$this->model_utils->getTableName()] ?? [];
+
+        //treba brisati one koje ne postoje u bulk inputu
+        if(count($existing_items) > count($bulk_input))
+        {
+            foreach ($existing_items as $item)
+            {
+                $found = false;
+                foreach ($bulk_input as $input_item)
+                {
+                    if($item->id == ($input_item['id'] ?? null))
+                    {
+                        $found = true;
+                        break;
+                    }
+                }
+
+                if(!$found)
+                {
+                    $this->model_utils->deleteFromParams(['id' => $item->id]);
+                }
+            }
+        }
+
+
+
+
+
+    }
+
+    public function storeBulk(Request $request)
+    {
+
+        try
+        {
+
+            $total_input = $request->all();
+
+            $bulk_input = $request->get($this->model_utils->getTableName()) ?? [];
+
+
+
+
+
+
+
+            foreach ($bulk_input as $key => $input)
+            {
+                $id = $input['id'] ?? null;
+
+                $processed_input = DbHelper::processTableInput($this->model_utils->getTableName(), $input);
+                foreach ($processed_input as $key => $value) {
+
+                    if($value instanceof UploadedFile) unset($processed_input[$key]);
+
+
+                    if(TextHelper::stringContains($key, ['remove_'])) unset($processed_input[$key]);
+
+
+                    if(is_array($value)) unset($processed_input[$key]);
+
+                }
+
+
+
+                if($id == null)
+                {
+                    $new_model = $this->model_utils->createFromParams($processed_input);
+
+
+                    try
+                    {
+                        $this->afterStore($request, $new_model->id, $input);
+                    }
+                    catch (\Exception $e)
+                    {
+                        return $this->redirectWithError($e);
+                    }
+
+
+                }
+                else
+                {
+                    $this->model_utils->updateFromParams(['id' => $id], $processed_input);
+                    $this->afterStore($request, $id, $input);
+
+                }
+            }
+
+            if($request->has('sync_items'))
+            {
+
+                $this->syncItems($request);
+            }
+
+            return redirect()->back();
+        }
+        catch (\Exception $e)
+        {
+            return $this->redirectWithError($e);
+        }
+
+    }
+
     public function redirectAfterStore(Request $request, $id = null)
     {
         return $this->redirectWithSuccess(__i("Uspešna akcija"), route($this->model_utils->getTableName() . '.create_partial', ['basic', $id]));
@@ -422,11 +541,15 @@ class CrudController extends AbstractController
 
 
 
-    public function afterStore(Request $request, $id)
+    public function afterStore(Request $request, $id, $custom_input = null)
     {
         $model = $this->model_utils->findById($id);
 
         $input = $request->all();
+
+
+        if($custom_input != null)
+            $input = $custom_input;
 
 
 
@@ -622,8 +745,13 @@ class CrudController extends AbstractController
 
     }
 
+
+
     protected function saveTranslations($model, array $input): void
     {
+
+
+
         $table = $this->model_utils->getTranslationsTableName();   // npr. clinics_translations
         $fk    = $this->model_utils->getTranslationsForeignKey();  // npr. clinic_id
         $langs = (array) config('languages');                      // ['sr'=>1,'en'=>2,'de'=>3]
@@ -665,9 +793,17 @@ class CrudController extends AbstractController
 
         $fields = array_values(array_unique($fields));
 
+
+
+
+
         if (empty($rowsByLang) || empty($fields)) {
             return;
         }
+
+
+
+        $auto_translate = count($rowsByLang) == 1;
 
 
 
@@ -703,9 +839,10 @@ class CrudController extends AbstractController
         }
         // ---------------------------------------------------------------
 
+
         $parentId = $model->getKey();
 
-        DB::transaction(function () use ($translationModelClass, $table, $fk, $parentId, $rowsByLang, $fields) {
+        DB::transaction(function () use ($translationModelClass, $table, $fk, $parentId, $rowsByLang, $fields, $auto_translate) {
 
             foreach ($rowsByLang as $langId => $payload) {
 
@@ -735,13 +872,22 @@ class CrudController extends AbstractController
                     }
                 }
 
+
+
+
+
                 // ✅ Ne snimaj bez promene (da observers ne pucaju bez razloga)
                 if ($row->isDirty()) {
-                    $row->save(); // <-- Eloquent events/observers rade
+
+                    if($auto_translate)
+                        $row->save(); // <-- Eloquent events/observers rade
+                    else
+                        $row->saveQuietly();  // ✅ neće okinuti observers/events
                 }
             }
         });
     }
+
 
     public function authorizeDelete($model)
     {
