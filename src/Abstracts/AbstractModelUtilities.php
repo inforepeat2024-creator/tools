@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
-use RepeatToolkit\Abstracts\AbstractModel;
 use RepeatToolkit\Helpers\StaticHelpers\DateTimeHelper;
 use RepeatToolkit\Helpers\StaticHelpers\TextHelper;
 use RepeatToolkit\Helpers\Traits\DbTableTrait;
