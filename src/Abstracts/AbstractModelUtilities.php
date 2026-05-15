@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
+use RepeatToolkit\Abstracts\AbstractModel;
 use RepeatToolkit\Helpers\StaticHelpers\DateTimeHelper;
 use RepeatToolkit\Helpers\StaticHelpers\TextHelper;
 use RepeatToolkit\Helpers\Traits\DbTableTrait;
@@ -969,6 +970,7 @@ abstract class AbstractModelUtilities
 
 
 
+                    $query = $this->addCustomFilters($query, $params);
 
 
 
@@ -1002,24 +1004,24 @@ abstract class AbstractModelUtilities
                         }
                         else if($operator == 'in_all')
                         {
-                           
-                                $values = $this->convertFilterValueBasedOnOperator('in_all', $value, $column);
 
-                                if (!is_array($values)) {
-                                    $values = [$values];
-                                }
+                            $values = $this->convertFilterValueBasedOnOperator('in_all', $value, $column);
 
-                                $count = count($values);
+                            if (!is_array($values)) {
+                                $values = [$values];
+                            }
 
-                                $query = $query->whereHas(
-                                    $relation,
-                                    function ($q) use ($column, $values) {
-                                        $q->whereIn($column, $values);
-                                    },
-                                    '=',
-                                    $count 
-                                );
-                           
+                            $count = count($values);
+
+                            $query = $query->whereHas(
+                                $relation,
+                                function ($q) use ($column, $values) {
+                                    $q->whereIn($column, $values);
+                                },
+                                '=',
+                                $count
+                            );
+
                         }
                         else
                         {
@@ -1207,7 +1209,16 @@ abstract class AbstractModelUtilities
         }
 
 
+
+
         return $query;
+    }
+
+    public function addCustomFilters($query, $params)
+    {
+
+        return $query;
+
     }
 
     public function getBaseQuery(array $params = [], array $order_by = [], array $aggregates = [],$limit = null, $offset = null)
