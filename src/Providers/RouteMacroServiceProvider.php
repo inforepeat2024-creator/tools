@@ -23,6 +23,7 @@ class RouteMacroServiceProvider extends ServiceProvider
             Route::get("{$uri}/delete/{id}", "{$controller}@destroy")->name("{$uri}.get_delete");
             Route::get("{$uri}/create-partial/{slug?}/{id?}", "{$controller}@createPartial")->name("{$uri}.create_partial");
             Route::post("{$uri}/store-partial/{id?}", "{$controller}@storePartial")->name("{$uri}.store_partial");
+            Route::post("{$uri}/store-bulk", "{$controller}@storeBulk")->name("{$uri}.store_bulk");
             Route::any("{$uri}/update-column/{id}/{column}/{value}", "{$controller}@updateColumn")->name("{$uri}.update_column");
             Route::post("{$uri}/delete-from-params", "{$controller}@deleteFromParams")->name("{$uri}.delete_from_params");
         });
